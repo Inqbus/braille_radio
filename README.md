@@ -5,7 +5,7 @@ A neat commandline internet radio for braille users or small character displays 
 ### Function
 
 Braille_radio plays internet radio stations. The station information is gathered from
-the open radio data project [https://www.radio-browser.info].
+the open radio data project [https://www.radio-browser.info](https://www.radio-browser.info).
 
 ### Slow indexing for lighting fast searching:
 
