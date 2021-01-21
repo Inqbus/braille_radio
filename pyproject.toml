@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "braille_radio"
+version = "0.1.0"
+description = "A minimal internet radio optimized for braille users"
+authors = ["volker <volker.jaenisch@inqbus.de>"]
+homepage = "https://github.com/Inqbus/braille_radio.git"
+repository = "https://github.com/Inqbus/braille_radio.git"
+license = "MIT"
+readme = "README.md"
+keywords = ["braille", "internet radio", "radio"]
+classifiers = [
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+python-vlc = "^3.0.11115"
+Whoosh = "^2.7.4"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
