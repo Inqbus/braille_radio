@@ -404,6 +404,10 @@ class Main(object):
                     self.page = res
                     self.page.render()
 
+def main():
+    main = Main(Intro)
+    wrapper(main)
 
-main = Main(Intro)
-wrapper(main)
+
+if __name__ == '__main__':
+    main()
