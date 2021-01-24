@@ -1,22 +1,31 @@
 import re
-from curses import wrapper, KEY_ENTER
-from braille_radio.radiobrowse import RadioBrowse
+from curses import KEY_ENTER, KEY_CTAB, KEY_BACKSPACE
+
 import vlc
 import os
 
-from braille_radio.rb_index import RadioIndex
+from curses import wrapper
+
+from addict import Dict
+
+from braille_radio.indexing import StationIndex
+from braille_radio.indexing import FavoriteIndex
+
+
+# Bring up an instance of radio brwose index
+station_index = StationIndex()
+
+# Bring up an instance of Favorites
+favorite_index = FavoriteIndex()
 
 # set VLC to verbose for easier debugging
 os.environ["VLC_VERBOSE"] = str("-1")
 
-# Bring up an instance of RadioBrowse
-rb = RadioBrowse()
-
-# Bring up an instance of RadioIndex
-ri = RadioIndex()
-
 # Regex Filter for category keys
 CHAR_MAP = re.compile('\w{1}',flags=re.ASCII )
+
+ALL_STATIONS = list(station_index.ix.searcher().documents())
+
 
 
 class Screen(object):
@@ -30,7 +39,14 @@ class Screen(object):
             self.screen = parent.screen
         else:
             self.screen = screen
+        self.key_handler = Dict()
+        self.init_key_handler()
         self.init()
+
+    def init_key_handler(self):
+        self.key_handler.KEY_UP = self.cursor_up
+        self.key_handler.KEY_DOWN = self.cursor_down
+
 
     def init(self):
         """
@@ -62,12 +78,10 @@ class Screen(object):
         :param key:
         :return:
         """
-        if key == 'KEY_UP':
-            self.cursor_up()
-            return True
-        elif key == 'KEY_DOWN':
-            self.cursor_down()
-            return True
+        if key in self.key_handler :
+            return self.key_handler[key]()
+        elif self.key_handler.other:
+            return self.key_handler.other(key)
 
     def cursor_up(self):
         """
@@ -76,6 +90,7 @@ class Screen(object):
         y, x = self.screen.getyx()
         if y > 0:
             self.screen.move(y - 1, x)
+        return True
 
     def cursor_down(self):
         """
@@ -85,27 +100,28 @@ class Screen(object):
         rows, cols = self.screen.getmaxyx()
         if y < rows - 1:
             self.screen.move(y + 1, x)
+        return True
 
 
 class Intro(Screen):
     """
     Introductional screen
     """
+    def init_key_handler(self):
+        super(Intro, self).init_key_handler()
+        self.key_handler.h = self.help
+        self.key_handler.r = self.radio
+
+    def help(self):
+        return Help(self)
+
+    def radio(self):
+        return Radio(self)
 
     def payload(self):
         self.screen.addstr('Welcome to braille radio! Help is always found on the next line.')
         self.screen.addstr(1, 0,
                 'Type h for help, r for radio')
-
-    def notify(self, key):
-        """
-        Show Help and radio option
-        """
-        super(Intro, self).notify(key)
-        if key == 'h':
-            return Help(self)
-        if key == 'r':
-            return Radio(self)
 
 
 class Help(Screen):
@@ -123,57 +139,6 @@ class Help(Screen):
         self.screen.clear()
         self.payload()
         self.screen.refresh()
-
-    def notify(self, key):
-        if key == 'q':
-            return None
-        if key == '':
-            return None
-
-
-class SearchResults(Screen):
-    """
-    Show the search results of a station search.
-    """
-
-    def init(self):
-        self.search_results = 'Init!'
-        self.search_result_index = 0
-
-    def search(self, search_string):
-        self.search_string = search_string
-        self.search_results = rb.search(self.search_string)
-
-    def payload(self):
-        if len(self.search_results) > 0:
-            data = (
-                len(self.search_results),
-                self.search_string,
-                self.search_result_index,
-                self.search_results[self.search_result_index]['name']
-            )
-            self.screen.addstr('%s results for "%s": %s %s' % data )
-        else:
-            self.screen.addstr('Nothing found for "%s"' % self.search_string)
-
-    def cursor_up(self):
-        if self.search_result_index > 0:
-            self.search_result_index -= 1
-        self.render()
-
-    def cursor_down(self):
-        if self.search_result_index < len(self.search_results) - 1:
-            self.search_result_index += 1
-        self.render()
-
-    def notify(self, key):
-        super(SearchResults, self).notify(key)
-        if key == 'q':
-            return None
-        elif key == KEY_ENTER or key == '\n':
-            station = StationPlay(self)
-            station.tune_to(self.search_results[self.search_result_index])
-            return station
 
 
 class StationPlay(Screen):
@@ -197,21 +162,50 @@ class StationPlay(Screen):
         pass
 
 
-class ChannelSearch(Screen):
+class AddFavorite(Screen):
     """
-    Search for a certain channel. Not optimal at the moment!
+    Plays a certain station
     """
+
+    def __init__(self, parent, index, screen=None):
+        super(AddFavorite, self).__init__(parent,screen=screen)
+        self.index = index
+
+    def mark(self, station):
+        self.station = station
+        self.index.mark(station)
+
+    def payload(self):
+        self.screen.addstr(0, 0, 'Added: %s to favorites' % self.station['name'])
+
+    def exit(self):
+        return self.parent
+
+    def notify(self, key):
+        pass
+
+
+class StationSearch(Screen):
+    """
+    Search for a certain station.
+    """
+    def __init__(self, parent, index, screen=None):
+        self.index = index
+        super(StationSearch, self).__init__(parent,screen=screen)
 
     def init(self):
-        self.search_string = ''
-        self.results = []
+        self.search_string = False
+        self.results = ALL_STATIONS
         self.search_result_index = 0
-
 
     def payload(self):
         if len(self.results) > 0:
-            self.screen.addstr('Searching: %s : %s %s %s (%s)' % (
-                self.search_string,
+            if not self.search_string:
+                _search_string = '<all>'
+            else:
+                _search_string = self.search_string
+            self.screen.addstr('Filter:%s Stations %s : %s %s (%s)' % (
+                _search_string,
                 len(self.results),
                 self.search_result_index + 1,
                 self.results[self.search_result_index]['name'],
@@ -219,31 +213,51 @@ class ChannelSearch(Screen):
             )
             )
         else:
-            self.screen.addstr('Searching: %s : No results : TYPE TO SEARCH!' % (
+            self.screen.addstr('Filter:%s : No results : TYPE TO SEARCH!' % (
                 self.search_string,
                 )
             )
+        self.screen.addstr(1, 0, 'Up/Down moves in results')
+        self.screen.addstr(2, 0, 'Hit enter to play selected station')
+        self.screen.addstr(3, 0, 'Hit TAB to mark station as favorite')
+        self.screen.move(0,0)
 
-    def notify(self, key):
-        if super(ChannelSearch, self).notify(key):
-            return
-        if key == 'ESC':
-            return self.parent
-        elif key == 'KEY_BACKSPACE':
-            if len(self.search_string) > 0:
-                self.search_string = self.search_string[:-1]
-                self.results = ri.search(self.search_string)
-                self.search_result_index = 0
-                self.render()
-        elif key == KEY_ENTER or key == '\n':
-            station = StationPlay(self)
-            station.tune_to(self.results[self.search_result_index])
-            return station
-        else :
-            self.search_string += key
-            self.results = ri.search(self.search_string)
+    def init_key_handler(self):
+        super(StationSearch, self).init_key_handler()
+        self.key_handler['KEY_BACKSPACE'] = self.backspace
+        self.key_handler[KEY_ENTER] = self.enter
+        self.key_handler['\n'] = self.enter
+        self.key_handler[KEY_CTAB] = self.tab
+        self.key_handler['\t'] = self.tab
+        self.key_handler['other'] = self.other
+
+    def backspace(self):
+        if len(self.search_string) > 0:
+            self.search_string = self.search_string[:-1]
+            self.results = self.index.search(self.search_string)
             self.search_result_index = 0
             self.render()
+
+    def enter(self):
+        station = StationPlay(self)
+        station.tune_to(self.results[self.search_result_index])
+        return station
+
+    def tab(self):
+        if self.results:
+            favorite = AddFavorite(self, favorite_index)
+            favorite.mark(self.results[self.search_result_index])
+            return favorite
+
+    def other(self, key):
+        if self.search_string:
+            self.search_string += key
+        else:
+            self.search_string = key
+        self.results = self.index.search(self.search_string)
+        self.search_result_index = 0
+        self.render()
+
 
     def cursor_up(self):
         if self.search_result_index > 0:
@@ -256,7 +270,16 @@ class ChannelSearch(Screen):
         self.render()
 
 
-class CategoryResults(SearchResults):
+class FavoriteSearch(StationSearch):
+
+    def init(self):
+        self.search_string = ''
+        self.results = list(self.index.ix.searcher().documents())
+        self.search_result_index = 0
+
+
+
+class CategoryResults(StationSearch):
     """
     Shown category results
     """
@@ -264,7 +287,6 @@ class CategoryResults(SearchResults):
     def search(self, search_string):
         self.search_string = search_string
         self.search_results = rb.search_category(self.search_string)
-
 
 
 class Categories(Screen):
@@ -307,7 +329,6 @@ class Categories(Screen):
             if len(key)== 1 and CHAR_MAP.match(key):
                 self.jump(key)
 
-
     def cursor_up(self):
         if self.category_index > 0:
             self.category_index -= 1
@@ -324,23 +345,29 @@ class Update(Screen):
     Update and reindex the station information
     """
 
-    def payload(self):
-        self.screen.addstr('Update station index? Please type y to confirm. ')
+    def init_key_handler(self):
+        super(Update, self).init_key_handler()
+        self.key_handler.y = self.update
 
-    def notify(self, key):
-        super(Update, self).notify(key)
-        if key == 'y':
-            return Updated(self)
+    def update(self):
+        return Updated(self, station_index )
+
+    def payload(self):
+        self.screen.addstr('Update station index? Please type y to confirm or ESC to go back. ')
+
 
 
 class Updated(Screen):
     """
     Do the updating and return to the radio view.
     """
+    def __init__(self, parent, index, screen=None):
+        self.index = index
+        super(Updated, self).__init__(parent,screen=screen)
 
     def payload(self):
         self.screen.addstr('Updating station index. Please wait. ')
-        ri.index_stations()
+        self.index.init()
         self.screen.addstr('Station index updated.')
         main.page = self.parent.parent
         main.page.render()
@@ -351,23 +378,32 @@ class Radio(Screen):
     Top level view for the radio.
     """
 
+    def init_key_handler(self):
+        super(Radio, self).init_key_handler()
+        self.key_handler.s = self.station_search
+        self.key_handler.f = self.favorite_search
+ #       self.key_handler.c = self.categories()
+        self.key_handler.u = self.update_stations
+
+    def station_search(self):
+        return StationSearch(self, station_index, self.screen)
+
+    def favorite_search(self):
+        return FavoriteSearch(self, favorite_index, self.screen)
+
+#    def categories(self):
+#        return Categories(self, self.screen)
+
+    def update_stations(self):
+       return Update(self, self.screen)
+
     def payload(self):
         self.screen.addstr('Radio')
-        self.screen.addstr(2, 0, 'Type s to search for stations')
-        self.screen.addstr(1, 0, 'Type c für categories')
-        self.screen.addstr(3, 0, 'Up/down selects station')
-        self.screen.addstr(4, 0, 'Hit enter to play station')
-        self.screen.addstr(5, 0, 'Type u to update station index (needs some time!)')
+        self.screen.addstr(1, 0, 'Type s to search for stations')
+        self.screen.addstr(2, 0, 'Type f for your favorites')
+#        self.screen.addstr(3, 0, 'Type c for categories search')
+        self.screen.addstr(3, 0, 'Type u to update station index (needs some time!)')
         self.screen.move(0,0)
-
-    def notify(self, key):
-        super(Radio, self).notify(key)
-        if key == 's':
-            return ChannelSearch(self, self.screen)
-        elif key == 'c':
-            return Categories(self, self.screen)
-        elif key == 'u':
-            return Update(self, self.screen)
 
 
 
@@ -404,9 +440,10 @@ class Main(object):
                     self.page = res
                     self.page.render()
 
+
 def main():
-    main = Main(Intro)
-    wrapper(main)
+    gui = Main(Intro)
+    wrapper(gui)
 
 
 if __name__ == '__main__':

@@ -18,6 +18,8 @@ classifiers = [
 python = "^3.7"
 python-vlc = "^3.0.11115"
 Whoosh = "^2.7.4"
+addict = "^2.4.0"
+progressbar = "^2.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
