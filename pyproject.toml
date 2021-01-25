@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "braille_radio"
-version = "0.1.0"
+version = "0.1.2"
 description = "A minimal internet radio optimized for braille users"
 authors = ["volker <volker.jaenisch@inqbus.de>"]
 homepage = "https://github.com/Inqbus/braille_radio.git"
@@ -30,3 +30,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 bradio = "braille_radio.gui:main"
+braille_radio = "braille_radio.gui:main"

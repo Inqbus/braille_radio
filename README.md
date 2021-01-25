@@ -34,7 +34,12 @@ This is a work in progress. Please open an issue if you have a question, found a
 ### Usage:
 
     $ braille_radio
-  
+    
+    or
+    
+    $ bradio
+    
+
     
 
 
