@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "braille_radio"
-version = "0.1.2"
+version = "0.1.3"
 description = "A minimal internet radio optimized for braille users"
 authors = ["volker <volker.jaenisch@inqbus.de>"]
 homepage = "https://github.com/Inqbus/braille_radio.git"
