@@ -185,6 +185,29 @@ class AddFavorite(Screen):
         pass
 
 
+class DelFavorite(Screen):
+    """
+    Plays a certain station
+    """
+
+    def __init__(self, parent, index, screen=None):
+        super(DelFavorite, self).__init__(parent,screen=screen)
+        self.index = index
+
+    def unmark(self, station):
+        self.station = station
+        self.index.unmark(station)
+
+    def payload(self):
+        self.screen.addstr(0, 0, 'Deleted: %s from favorites' % self.station['name'])
+
+    def exit(self):
+        return self.parent
+
+    def notify(self, key):
+        pass
+
+
 class StationSearch(Screen):
     """
     Search for a certain station.
@@ -197,6 +220,12 @@ class StationSearch(Screen):
         self.search_string = False
         self.results = ALL_STATIONS
         self.search_result_index = 0
+
+    def help(self):
+        self.screen.addstr(1, 0, 'Up/Down moves in results')
+        self.screen.addstr(2, 0, 'Hit enter to play selected station')
+        self.screen.addstr(3, 0, 'Hit TAB to mark station as favorite')
+        self.screen.move(0,0)
 
     def payload(self):
         if len(self.results) > 0:
@@ -217,10 +246,7 @@ class StationSearch(Screen):
                 self.search_string,
                 )
             )
-        self.screen.addstr(1, 0, 'Up/Down moves in results')
-        self.screen.addstr(2, 0, 'Hit enter to play selected station')
-        self.screen.addstr(3, 0, 'Hit TAB to mark station as favorite')
-        self.screen.move(0,0)
+        self.help()
 
     def init_key_handler(self):
         super(StationSearch, self).init_key_handler()
@@ -258,7 +284,6 @@ class StationSearch(Screen):
         self.search_result_index = 0
         self.render()
 
-
     def cursor_up(self):
         if self.search_result_index > 0:
             self.search_result_index -= 1
@@ -277,6 +302,18 @@ class FavoriteSearch(StationSearch):
         self.results = list(self.index.ix.searcher().documents())
         self.search_result_index = 0
 
+    def tab(self):
+        if self.results:
+            favorite = DelFavorite(self, favorite_index)
+            favorite.unmark(self.results[self.search_result_index])
+            self.init()
+            return favorite
+
+    def help(self):
+        self.screen.addstr(1, 0, 'Up/Down moves in results')
+        self.screen.addstr(2, 0, 'Hit enter to play selected station')
+        self.screen.addstr(3, 0, 'Hit TAB to delete station from favorites')
+        self.screen.move(0,0)
 
 
 class CategoryResults(StationSearch):
@@ -382,7 +419,6 @@ class Radio(Screen):
         super(Radio, self).init_key_handler()
         self.key_handler.s = self.station_search
         self.key_handler.f = self.favorite_search
- #       self.key_handler.c = self.categories()
         self.key_handler.u = self.update_stations
 
     def station_search(self):
@@ -391,9 +427,6 @@ class Radio(Screen):
     def favorite_search(self):
         return FavoriteSearch(self, favorite_index, self.screen)
 
-#    def categories(self):
-#        return Categories(self, self.screen)
-
     def update_stations(self):
        return Update(self, self.screen)
 
@@ -401,7 +434,6 @@ class Radio(Screen):
         self.screen.addstr('Radio')
         self.screen.addstr(1, 0, 'Type s to search for stations')
         self.screen.addstr(2, 0, 'Type f for your favorites')
-#        self.screen.addstr(3, 0, 'Type c for categories search')
         self.screen.addstr(3, 0, 'Type u to update station index (needs some time!)')
         self.screen.move(0,0)
 

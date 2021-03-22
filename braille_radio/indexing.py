@@ -55,7 +55,7 @@ class FavoriteIndex(Index):
 
     def unmark(self, station):
         self.writer = self.ix.writer()
-        self.writer.delete_document( station['url_resolved'] )
+        self.writer.delete_by_term( 'url_resolved', station['url_resolved'] )
         self.writer.commit()
 
 
