@@ -1,4 +1,5 @@
-import os, os.path
+import os
+import os.path
 from whoosh import index
 from whoosh.fields import Schema, NGRAM, ID
 
@@ -17,6 +18,7 @@ SCHEMA = Schema(
 
 class Index(object):
     index_dir = None
+    writer = None
 
     def __init__(self):
 
@@ -33,7 +35,7 @@ class Index(object):
         pass
 
     def search(self, term):
-        qp = MultifieldParser(['name','tags'], schema=SCHEMA)
+        qp = MultifieldParser(['name', 'tags'], schema=SCHEMA)
         q = qp.parse(term)
 
         searcher = self.ix.searcher()
@@ -55,7 +57,7 @@ class FavoriteIndex(Index):
 
     def unmark(self, station):
         self.writer = self.ix.writer()
-        self.writer.delete_by_term( 'url_resolved', station['url_resolved'] )
+        self.writer.delete_by_term('url_resolved', station['url_resolved'])
         self.writer.commit()
 
 
@@ -67,10 +69,16 @@ class StationIndex(Index):
         rb = RadioBrowse()
         all_stations = rb.all_stations()
 
+        # clear old index completely
+        self.ix = index.create_in(self.index_dir, SCHEMA)
+
         self.writer = self.ix.writer(procs=4, limitmb=256, multisegment=True)
 
         count = len(all_stations)
-        bar = progressbar.ProgressBar(maxval=count, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+        bar = progressbar.ProgressBar(
+            maxval=count,
+            widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]
+        )
         bar.start()
 
         for idx, station in enumerate(all_stations):
@@ -85,9 +93,3 @@ class StationIndex(Index):
         self.writer.commit()
         print('Index successfully created!')
         bar.finish()
-
-
-if __name__ == '__main__':
-    ri = RadioIndex()
-    print(ri.search('euro'))
-    pass

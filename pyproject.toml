@@ -21,7 +21,7 @@ Whoosh = "^2.7.4"
 addict = "^2.4.0"
 progressbar = "^2.5"
 objsize = "^0.3.3"
-xarray = "^0.16.2"
+#xarray = "^0.16.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

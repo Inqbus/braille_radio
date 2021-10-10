@@ -64,6 +64,3 @@ if __name__ == '__main__':
     res = rb.search('EKR')
     print(res)
 
-
-
-
