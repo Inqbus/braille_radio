@@ -1,5 +1,7 @@
 import os
 import os.path
+import shutil
+
 from whoosh import index
 from whoosh.fields import Schema, NGRAM, ID
 
@@ -65,11 +67,14 @@ class StationIndex(Index):
     index_dir = STATION_INDEX_DIR
 
     def init(self):
-        print('Indexing all available stations. This can take a minute or two.')
+        print('Indexing all available stations. This can take a minute or two. Loading stations')
         rb = RadioBrowse()
         all_stations = rb.all_stations()
 
         # clear old index completely
+        self.ix.close()
+        shutil.rmtree(self.index_dir)
+        os.mkdir(self.index_dir)
         self.ix = index.create_in(self.index_dir, SCHEMA)
 
         self.writer = self.ix.writer(procs=4, limitmb=256, multisegment=True)
