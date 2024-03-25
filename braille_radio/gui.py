@@ -150,7 +150,10 @@ class StationPlay(Screen):
 
     def payload(self):
         self.screen.addstr(0, 0, 'Playing: %s' % self.station['name'])
-        self.p = vlc.MediaPlayer(self.station['url_resolved'])
+        uri = self.station['url_resolved']
+        self.a = vlc.Instance(["--file-caching=2000 --network-caching=3000"])
+        self.p = self.a.media_player_new()
+        self.p.set_mrl(uri)
         self.p.play()
 
     def exit(self):
