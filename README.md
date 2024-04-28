@@ -10,7 +10,7 @@ the open radio data project [https://www.radio-browser.info](https://www.radio-b
 ### Slow indexing for lighting fast searching:
 
 The station information is processed by [Whoosh](https://whoosh.readthedocs.io/en/latest/intro.html) into a quick search index.
-Therefore the initial start of braille_radio will need a minute or two to create the index, so please be patient. 
+Therefore, the initial start of braille_radio will need a minute or two to create the index, so please be patient. 
 The subsequent starts will be quite fast. Then you can fluidly search (offline) as you type.
 
 ### Optimized GUI:
