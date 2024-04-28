@@ -55,17 +55,19 @@ class FileManagerStart(Screen):
         self.render()
 
     def scan(self):
-        self.local = []
-        for i in os.scandir(self.wd):
-            self.local.append((f'{i.name}', i.is_dir()))
+        files = [(i.name, i.is_dir()) for i in self.wd.glob('*')]
+        files = sorted(files, key=lambda file: (not file[1], file[0].lower()))
+        self.local = files
 
         self.local_index = 0
 
     def payload(self):
+        left_part = f"{'/'.join(self.wd.parts[-3:])}"
         if self.local[self.local_index][1]:
-            self.screen.addstr(f'{self.wd} <{self.local[self.local_index][0]}>')
+            middle_part = f'<{self.local[self.local_index][0]}>'
         else:
-            self.screen.addstr(f'{self.wd} {self.local[self.local_index][0]}')
+            middle_part = f'{self.local[self.local_index][0]}'
+        self.screen.addstr(left_part + ' ' + middle_part)
 
     def cursor_up(self):
         if self.local_index > 0:
