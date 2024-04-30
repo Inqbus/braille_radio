@@ -84,6 +84,7 @@ class FileManagerStart(Screen):
         else:
             middle_part = f'{self.current_dir[self.current_dir_index][0]}'
         self.screen.addstr(left_part + ' ' + middle_part)
+        self.screen.move(0, len(left_part))
 
     def cursor_up(self):
         if self.current_dir_index > 0:
