@@ -34,3 +34,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 bradio = "braille_radio.gui:main"
 braille_radio = "braille_radio.gui:main"
+fman = "braille_radio.gui:fman"

@@ -1,3 +1,4 @@
+import curses
 import re
 from curses import KEY_ENTER, KEY_CTAB
 
@@ -10,7 +11,7 @@ from braille_radio.base import Screen
 from braille_radio.filemanager import FileManager
 from braille_radio.indexing import StationIndex
 from braille_radio.indexing import FavoriteIndex
-
+from braille_radio.loop import MainLoop
 
 # Bring up an instance of radio browse index
 station_index = StationIndex()
@@ -32,7 +33,6 @@ class Intro(Screen):
     Intro screen
     """
     def init_key_handler(self):
-        super(Intro, self).init_key_handler()
         self.key_handler.h = self.help
         self.key_handler.r = self.radio
         self.key_handler.f = self.filemanager
@@ -353,7 +353,6 @@ class Radio(Screen):
     """
 
     def init_key_handler(self):
-        super(Radio, self).init_key_handler()
         self.key_handler.s = self.station_search
         self.key_handler.f = self.favorite_search
         self.key_handler.u = self.update_stations
@@ -375,43 +374,9 @@ class Radio(Screen):
         self.screen.move(0, 0)
 
 
-class Main(object):
-    """
-    The main instance dispatching keystrokes
-    """
-    page = None
-
-    def __init__(self, initial_page_class):
-        self.initial_page_class = initial_page_class
-
-    def __call__(self, screen):
-        self.screen = screen
-        self.run()
-
-    def run(self):
-        self.page = self.initial_page_class(None, self.screen)
-        self.signal_loop()
-
-    def signal_loop(self):
-        self.page.render()
-        while True:
-            key = self.screen.getkey()
-            if key == '':
-                page = self.page.exit()
-                if page is None:
-                    break
-                else:
-                    self.page = page
-                    self.page.render()
-            else:
-                res = self.page.notify(key)
-                if res is not None:
-                    self.page = res
-                    self.page.render()
-
 
 def main():
-    gui = Main(Intro)
+    gui = MainLoop(Intro)
     wrapper(gui)
 
 
