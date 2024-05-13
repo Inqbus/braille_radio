@@ -98,12 +98,15 @@ class FileManagerStart(Screen):
     def mark_clear(self):
         self.marked = set()
         self.do_mark = False
+        self.render()
 
     def mark_toggle(self):
         self.mark()
 
     def mark_all(self):
-        pass
+        for path in self.current_dir.items():
+            self.marked.add(self.path / path[0])
+        self.render()
 
     def backspace(self):
         if len(self.search_string) > 0:
