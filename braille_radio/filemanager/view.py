@@ -57,7 +57,19 @@ class FileManager(Screen):
         self.key_handler['ALT+n'] = self.mark_clear
         self.key_handler['ALT+a'] = self.mark_all
         self.key_handler['ALT+t'] = self.mark_toggle
+        self.key_handler['ALT+È'] = self.increase_depth
+        self.key_handler['ALT+-'] = self.decrease_depth
         self.key_handler['other'] = self.other
+
+    def increase_depth(self):
+        self.number_of_path_parts += 1
+        self.render()
+
+    def decrease_depth(self):
+        if self.number_of_path_parts > 2:
+            self.number_of_path_parts -= 1
+            self.render()
+
 
     def mark(self):
         file_path = self.current_dir_entry_path
