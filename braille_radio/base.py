@@ -22,17 +22,24 @@ class Screen(object):
 
     def init(self):
         """
-        Initializing the srceen
+        Initializing the screen
         """
         pass
 
     def render(self):
         # Clear screen
-        self.screen.clear()
+        self.clear_screen()
         # Bring something on the screen
         self.payload()
         # refresh the screen
         self.screen.refresh()
+
+    def clear_screen(self):
+        """
+        Clears the screen
+        :return:
+        """
+        self.screen.clear()
 
     def payload(self):
         """

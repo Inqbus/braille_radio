@@ -1,4 +1,3 @@
-import curses
 import re
 from curses import KEY_ENTER, KEY_CTAB
 
@@ -8,7 +7,7 @@ import os
 from curses import wrapper
 
 from braille_radio.base import Screen
-from braille_radio.filemanager import FileManager
+from braille_radio.filemanager.view import FileManager
 from braille_radio.indexing import StationIndex
 from braille_radio.indexing import FavoriteIndex
 from braille_radio.loop import MainLoop
@@ -372,7 +371,6 @@ class Radio(Screen):
         self.screen.addstr(2, 0, 'Type f for your favorites')
         self.screen.addstr(3, 0, 'Type u to update station index (needs some time!)')
         self.screen.move(0, 0)
-
 
 
 def main():

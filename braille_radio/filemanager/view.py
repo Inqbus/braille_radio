@@ -1,70 +1,49 @@
 import curses
 import os
-from _curses import KEY_UP, KEY_LEFT, KEY_F5, KEY_RIGHT, KEY_BACKSPACE
 from pathlib import Path
 from curses import KEY_ENTER
 
 from braille_radio.base import Screen
 from sortedcontainers.sorteddict import SortedDict
 
-from braille_radio.loop import MainLoop
-
 
 class FileManager(Screen):
     """
     Filemanager Intro Screen
     """
-
-    def init_key_handler(self):
-        super(FileManager, self).init_key_handler()
-        self.key_handler.f = self.filemanager_start
-        self.key_handler.h = self.filemanager_help
-
-    def filemanager_start(self):
-        return FileManagerStart(self)
-
-    def filemanager_help(self):
-        return FileManagerHelp(self)
-
-    def payload(self):
-        self.screen.addstr('Welcome to filemanager! Help is always found on the next line.')
-        self.screen.addstr(1, 0, 'Type h for help, f for start')
-
-
-class FileManagerHelp(Screen):
-    """
-    Filemanager Intro Screen
-    """
-
-
-class FileManagerStart(Screen):
-    """
-    Filemanager Intro Screen
-    """
-    def __init__(self, parent, screen=None):
-        super(FileManagerStart, self).__init__(parent, screen=screen)
+    def __init__(self, parent, screen=None, display_line=0):
+        super(FileManager, self).__init__(parent, screen=screen)
+        # where to show myself
+        self.display_line = display_line
         # Show dotted files
         self.show_dot = True
         # do search
         self.do_search = False
         # do shift marking
         self.do_mark = False
-
+        # Number of path parts shown
+        self.number_of_path_parts = 3
+        # The type ahead ssearch string
         self.search_string = None
+        # the actual file system path
         self.path = Path(os.getcwd())
-        self.current_dir = SortedDict()
+        # The files in the current_dir
+        self.current_dir_files = SortedDict()
         # This initializes the dir_index
         self.depth = len(self.path.parts)
         # This is important to initialize the index on the current folder
         self.dir_index = 0
+        # Initial Scan of the current directory
         self.scan()
+        # Initialize old_path for memorizing the path history
         self.old_path = self.path
+        # The files marked in the current directory marked
         self.marked = set()
-        # used for marking operation
-        self.key_buf = ''
+
 
     def init_key_handler(self):
-        super(FileManagerStart, self).init_key_handler()
+        super(FileManager, self).init_key_handler()
+        self.key_handler['\t'] = self.parent.toggle_view
         self.key_handler[KEY_ENTER] = self.dir_down
         self.key_handler['\n'] = self.dir_down
         self.key_handler['KEY_RIGHT'] = self.dir_down
@@ -104,7 +83,7 @@ class FileManagerStart(Screen):
         self.mark()
 
     def mark_all(self):
-        for path in self.current_dir.items():
+        for path in self.current_dir_files.items():
             self.marked.add(self.path / path[0])
         self.render()
 
@@ -114,19 +93,8 @@ class FileManagerStart(Screen):
             self.scan()
             self.render()
 
-    def shift_bracket(self, key):
+    def toggle_view(self, key):
         pass
-        # if self.do_mark:
-        #     if self.key_buf == '[':
-        #         if key == 'A':
-        #             self.()
-        #             self.key_buf = ''
-        #         elif key == 'B':
-        #             self.mark_end()
-        #             self.key_buf = ''
-        #
-        #     if key == '[':
-        #         self.key_buf = key
 
     def other(self, key):
         if self.do_search:
@@ -188,7 +156,7 @@ class FileManagerStart(Screen):
                 self.dir_index = 0
             else:
                 try:
-                    self.dir_index = self.current_dir.index(old_entry)
+                    self.dir_index = self.current_dir_files.index(old_entry)
                 except ValueError:
                     # the old path part is not found.
                     self.dir_index = 0
@@ -197,8 +165,11 @@ class FileManagerStart(Screen):
             self.render()
 
     def dir_up(self):
+        # in Depth the "/" is counted, so we have to bail out at 1
+        if self.depth == 1:
+            return
         self.clear_search()
-        came_from = self.current_dir.items()[self.dir_index][0]
+        came_from = self.current_dir_files.items()[self.dir_index][0]
         # check if we go up along the route of the old_path
         if len(self.old_path.parts) > self.depth:
             if self.old_path.parts[self.depth] != came_from:
@@ -216,7 +187,7 @@ class FileManagerStart(Screen):
         self.path = self.path.parent
         self.scan()
         try:
-            self.dir_index = self.current_dir.index(old_wd.parts[self.depth])
+            self.dir_index = self.current_dir_files.index(old_wd.parts[self.depth])
         except ValueError:
             # Dir entry does not exist anymore
             self.dir_index = 0
@@ -224,15 +195,15 @@ class FileManagerStart(Screen):
 
     @property
     def current_dir_entry(self):
-        return self.current_dir.items()[self.dir_index]
+        return self.current_dir_files.items()[self.dir_index]
 
     @property
     def current_dir_entry_path(self):
-        return self.path /self.current_dir.items()[self.dir_index][0]
+        return self.path /self.current_dir_files.items()[self.dir_index][0]
 
     def scan(self):
 
-        self.current_dir = SortedDict()
+        self.current_dir_files = SortedDict()
 
         for i in self.path.glob('*'):
             if not self.show_dot and i.name.startswith('.'):
@@ -240,13 +211,22 @@ class FileManagerStart(Screen):
             if self.search_string is not None and self.search_string not in i.name:
                 continue
             file_ds = {'is_dir': i.is_dir()}
-            self.current_dir[i.name] = file_ds
+            self.current_dir_files[i.name] = file_ds
+
+    def clear_screen(self):
+        """
+        Clears the screen
+        :return:
+        """
+        self.screen.move(self.display_line, 0)
+        self.screen.clrtoeol()
 
     def payload(self):
-        y = 0
+        y = self.display_line
         x = 0
         # format the path part
-        path_part = f"{'/'.join(self.path.parts[-3:])}"
+        path_part_wihout_root = self.path.parts[1:]
+        path_part = f"/{'/'.join(path_part_wihout_root[-self.number_of_path_parts:])}"
 
         # get the file part
         name, payload = self.current_dir_entry
@@ -278,11 +258,11 @@ class FileManagerStart(Screen):
         x += len(filter_part)
         self.screen.addstr(y, x, file_part, file_part_format)
 
-        self.screen.addstr(1, 0, str(self.dir_index))
-        self.screen.addstr(2, 0, str(self.depth))
-        self.screen.addstr(3, 0, 'old_path: ' + str(self.old_path))
+        self.screen.move(y, len(path_part))
 
-        self.screen.move(0, len(path_part))
+        # self.screen.addstr(1, 0, str(self.dir_index))
+        # self.screen.addstr(2, 0, str(self.depth))
+        # self.screen.addstr(3, 0, 'old_path: ' + str(self.old_path))
 
     def cursor_up(self):
         if self.dir_index > 0:
@@ -292,48 +272,10 @@ class FileManagerStart(Screen):
         self.render()
 
     def cursor_down(self):
-        if self.dir_index < len(self.current_dir) - 1:
+        if self.dir_index < len(self.current_dir_files) - 1:
             self.dir_index += 1
         if self.do_mark:
             self.mark()
         self.render()
 
 
-class FileManagerLoop(MainLoop):
-    """
-    The main instance dispatching keystrokes
-    """
-
-    def signal_loop(self):
-        self.page.render()
-        while True:
-            key = self.screen.getkey()
-            # handle meta key
-            if key == '\x1b':
-                self.meta_set = True
-            elif self.meta_set:
-                self.meta_set = False
-                key = 'ALT+' + key
-            if key == '\x04':
-                page = self.page.exit()
-                if page is None:
-                    break
-                else:
-                    self.page = page
-                    self.page.render()
-            else:
-                res = self.page.notify(key)
-                if res is not None:
-                    self.page = res
-                    self.page.render()
-                # else:
-                #     print(f'key is {key}')
-
-
-def main():
-    gui = FileManagerLoop(FileManager)
-    curses.wrapper(gui)
-
-
-if __name__ == '__main__':
-    main()
