@@ -1,5 +1,6 @@
 import curses
 
+from braille_radio.base import Screen
 from braille_radio.filemanager.intro import FileManagerIntro
 from braille_radio.loop import MainLoop
 
@@ -16,6 +17,7 @@ class FileManagerLoop(MainLoop):
             # handle meta key
             if key == '\x1b':
                 self.meta_set = True
+                continue
             elif self.meta_set:
                 self.meta_set = False
                 key = 'ALT+' + key
@@ -28,11 +30,18 @@ class FileManagerLoop(MainLoop):
                     self.page.render()
             else:
                 res = self.page.notify(key)
+                # if res is None the keypress was processed internally and no page change
+                # was requested
                 if res is not None:
-                    self.page = res
-                    self.page.render()
-                # else:
-                #     print(f'key is {key}')
+                    # A page change is requested
+                    if isinstance(res, Screen):
+                        self.page = res
+                        self.page.render()
+                    # A page change with a callback is requested
+                    elif isinstance(res, tuple) and isinstance(res[0], Screen):
+                        self.page = res[0]
+                        self.page.render()
+                        res[1]()
 
 
 def main():

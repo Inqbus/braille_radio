@@ -40,7 +40,6 @@ class FileManager(Screen):
         # The files marked in the current directory marked
         self.marked = set()
 
-
     def init_key_handler(self):
         super(FileManager, self).init_key_handler()
         self.key_handler['\t'] = self.parent.toggle_view
@@ -51,11 +50,11 @@ class FileManager(Screen):
         self.key_handler['.'] = self.toggle_dot
         self.key_handler['/'] = self.toggle_search
         self.key_handler['KEY_BACKSPACE'] = self.backspace
-        self.key_handler['KEY_F(5)'] = self.mark
+        self.key_handler['ALT+a'] = self.mark_all
         self.key_handler['ALT+b'] = self.mark_begin
+        self.key_handler['ALT+c'] = self.parent.copy_confirm
         self.key_handler['ALT+e'] = self.mark_end
         self.key_handler['ALT+n'] = self.mark_clear
-        self.key_handler['ALT+a'] = self.mark_all
         self.key_handler['ALT+t'] = self.mark_toggle
         self.key_handler['ALT+È'] = self.increase_depth
         self.key_handler['ALT+-'] = self.decrease_depth
@@ -69,7 +68,6 @@ class FileManager(Screen):
         if self.number_of_path_parts > 2:
             self.number_of_path_parts -= 1
             self.render()
-
 
     def mark(self):
         file_path = self.current_dir_entry_path
@@ -131,6 +129,7 @@ class FileManager(Screen):
         self.do_search = not self.do_search
         if not self.do_search:
             self.search_string = None
+            self.scan()
         self.render()
 
     def clear_search(self):
@@ -271,10 +270,6 @@ class FileManager(Screen):
         self.screen.addstr(y, x, file_part, file_part_format)
 
         self.screen.move(y, len(path_part))
-
-        # self.screen.addstr(1, 0, str(self.dir_index))
-        # self.screen.addstr(2, 0, str(self.depth))
-        # self.screen.addstr(3, 0, 'old_path: ' + str(self.old_path))
 
     def cursor_up(self):
         if self.dir_index > 0:

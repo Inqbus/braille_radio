@@ -14,7 +14,10 @@ class FileManagerIntro(Screen):
         self.key_handler.h = self.filemanager_help
 
     def filemanager_start(self):
-        return FileManagerMain(self)
+        # We must return the view here, to direct the keys to the view.
+        fm = FileManagerMain(self)
+        fm.render()
+        return fm.view
 
     def filemanager_help(self):
         return FileManagerHelp(self)

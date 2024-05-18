@@ -1,4 +1,5 @@
 from braille_radio.base import Screen
+from braille_radio.confirm import PopUp, Choice
 from braille_radio.filemanager.view import FileManager
 
 
@@ -18,10 +19,15 @@ class FileManagerMain(Screen):
             FileManager(parent=self, display_line=0),
             FileManager(parent=self, display_line=1),
             ]
+        return self.view
 
     @property
     def view(self):
         return self.views[self.view_idx]
+
+    @property
+    def other_view(self):
+        return self.views[1 - self.view_idx]
 
     def toggle_view(self):
         self.view_idx = 1 - self.view_idx
@@ -38,3 +44,9 @@ class FileManagerMain(Screen):
 
     def dispatch_key(self, key):
         self.view.notify(key)
+
+    def copy_confirm(self):
+        if self.view.path == self.other_view.path:
+            return PopUp(self.view, msg='Source and Target are identical!')
+        else:
+            return Choice(self.view, msg='Are you sure?', yes=self.copy)
