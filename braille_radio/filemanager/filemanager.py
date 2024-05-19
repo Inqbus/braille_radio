@@ -1,3 +1,5 @@
+import shutil
+
 from braille_radio.base import Screen
 from braille_radio.confirm import PopUp, Choice
 from braille_radio.filemanager.view import FileManager
@@ -50,3 +52,43 @@ class FileManagerMain(Screen):
             return PopUp(self.view, msg='Source and Target are identical!')
         else:
             return Choice(self.view, msg='Are you sure?', yes=self.copy)
+
+    def move_confirm(self):
+        if self.view.path == self.other_view.path:
+            return PopUp(self.view, msg='Source and Target are identical!')
+        else:
+            return Choice(self.view, msg='Are you sure?', yes=self.move)
+
+    def delete_confirm(self):
+        return Choice(self.view, msg='Are you sure?', yes=self.delete)
+
+    def copy(self):
+        for item in self.view.marked:
+            if item.is_dir():
+                shutil.copytree(item, self.other_view.path)
+            else:
+                shutil.copy2(item, self.other_view.path)
+        self.other_view.scan()
+        self.other_view.render()
+        self.view.render()
+
+    def move(self):
+        for item in self.view.marked:
+            shutil.move(item, self.other_view.path)
+        self.view.marked = set()
+        self.view.scan()
+        self.other_view.scan()
+        self.view.render()
+        self.other_view.render()
+        return self.view
+
+    def delete(self):
+        for item in self.view.marked:
+            if item.is_dir():
+                shutil.rmtree(item)
+            else:
+                item.unlink()
+        self.view.marked = set()
+
+        self.view.scan()
+        self.view.render()

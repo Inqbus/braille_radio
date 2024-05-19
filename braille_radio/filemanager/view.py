@@ -53,7 +53,9 @@ class FileManager(Screen):
         self.key_handler['ALT+a'] = self.mark_all
         self.key_handler['ALT+b'] = self.mark_begin
         self.key_handler['ALT+c'] = self.parent.copy_confirm
+        self.key_handler['ALT+d'] = self.parent.delete_confirm
         self.key_handler['ALT+e'] = self.mark_end
+        self.key_handler['ALT+m'] = self.parent.move_confirm
         self.key_handler['ALT+n'] = self.mark_clear
         self.key_handler['ALT+t'] = self.mark_toggle
         self.key_handler['ALT+È'] = self.increase_depth
@@ -138,6 +140,10 @@ class FileManager(Screen):
 
     def dir_down(self):
         self.clear_search()
+        # We cannot go into an empty directory
+        if self.current_dir_entry[1] is None:
+            return
+        # We can only go into a directory
         if self.current_dir_entry[1]['is_dir']:
             new_dir = self.current_dir_entry[0]
             self.path = self.path / new_dir
@@ -180,16 +186,17 @@ class FileManager(Screen):
         if self.depth == 1:
             return
         self.clear_search()
-        came_from = self.current_dir_files.items()[self.dir_index][0]
-        # check if we go up along the route of the old_path
-        if len(self.old_path.parts) > self.depth:
-            if self.old_path.parts[self.depth] != came_from:
-                # if we go up from another route the current old_path is invalid
-                self.old_path = self.path / came_from
+        if self.current_dir_files:
+            came_from = self.current_dir_files.items()[self.dir_index][0]
+            # check if we go up along the route of the old_path
+            if len(self.old_path.parts) > self.depth:
+                if self.old_path.parts[self.depth] != came_from:
+                    # if we go up from another route the current old_path is invalid
+                    self.old_path = self.path / came_from
 
-        else:
-            # We have not previously been here so memoize the location
-            self.old_path = self.old_path / came_from
+            else:
+                # We have not previously been here so memoize the location
+                self.old_path = self.old_path / came_from
 
         self.depth -= 1
 
@@ -206,11 +213,15 @@ class FileManager(Screen):
 
     @property
     def current_dir_entry(self):
-        return self.current_dir_files.items()[self.dir_index]
+        if self.current_dir_files:
+            return self.current_dir_files.items()[self.dir_index]
+        else:
+            return (None, None)
 
     @property
     def current_dir_entry_path(self):
-        return self.path /self.current_dir_files.items()[self.dir_index][0]
+        if self.current_dir_files:
+            return self.path /self.current_dir_files.items()[self.dir_index][0]
 
     def scan(self):
 
@@ -242,11 +253,14 @@ class FileManager(Screen):
         # get the file part
         name, payload = self.current_dir_entry
 
-        # Format as directory
-        if payload['is_dir']:
-            file_part = f'<{name}>'
+        if payload is not None:
+            # Format as directory
+            if payload['is_dir']:
+                file_part = f'<{name}>'
+            else:
+                file_part = f'{name}'
         else:
-            file_part = f'{name}'
+            file_part = f'!empty!'
 
         # Set display attributes on file_part
         file_part_format = curses.A_NORMAL

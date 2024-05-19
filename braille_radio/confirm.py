@@ -33,31 +33,32 @@ class PopUp(Screen):
         return self.parent
 
 
-class Choice(Screen):
+class Choice(PopUp):
 
     def __init__(self, parent, msg=None, screen=None, yes=None, no=None):
         super().__init__(parent, screen=screen)
         self.msg = msg
-        self.yes = yes
-        self.no = no
+        self.yes_callback = yes
+        self.no_callback = no
 
     def init_key_handler(self):
         super().init_key_handler()
         self.key_handler[KEY_ENTER] = self.yes
         self.key_handler['\n'] = self.yes
+        self.key_handler['y'] = self.yes
         self.key_handler['other'] = self.no
 
     def no(self):
         self.clear_screen()
-        if self.no is not None:
-            return self.parent, self.no
+        if self.no_callback is not None:
+            return self.parent, self.no_callback
         else:
             return self.parent
 
     def yes(self):
         self.clear_screen()
-        if self.yes is not None:
-            return self.parent, self.yes
+        if self.yes_callback is not None:
+            return self.parent, self.yes_callback
         else:
             return self.parent
 
