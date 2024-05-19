@@ -48,7 +48,7 @@ class Choice(PopUp):
         self.key_handler['y'] = self.yes
         self.key_handler['other'] = self.no
 
-    def no(self):
+    def no(self, _key):
         self.clear_screen()
         if self.no_callback is not None:
             return self.parent, self.no_callback
