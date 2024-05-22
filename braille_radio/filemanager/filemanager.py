@@ -51,13 +51,13 @@ class FileManagerMain(Screen):
         if self.view.path == self.other_view.path:
             return PopUp(self.view, msg='Source and Target are identical!')
         else:
-            return Choice(self.view, msg='Are you sure?', yes=self.copy)
+            return Choice(self.view, msg='Copy: Are you sure?', yes=self.copy)
 
     def move_confirm(self):
         if self.view.path == self.other_view.path:
             return PopUp(self.view, msg='Source and Target are identical!')
         else:
-            return Choice(self.view, msg='Are you sure?', yes=self.move)
+            return Choice(self.view, msg='Move: Are you sure?', yes=self.move)
 
     def delete_confirm(self):
         return Choice(self.view, msg='Are you sure?', yes=self.delete)

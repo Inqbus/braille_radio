@@ -6,6 +6,12 @@ from curses import KEY_ENTER
 from braille_radio.base import Screen
 from sortedcontainers.sorteddict import SortedDict
 
+from braille_radio.filemanager.newdir import NewDir
+
+
+class RenameDir:
+    pass
+
 
 class FileManager(Screen):
     """
@@ -56,11 +62,19 @@ class FileManager(Screen):
         self.key_handler['ALT+d'] = self.parent.delete_confirm
         self.key_handler['ALT+e'] = self.mark_end
         self.key_handler['ALT+m'] = self.parent.move_confirm
-        self.key_handler['ALT+n'] = self.mark_clear
+        self.key_handler['ALT+n'] = self.new_dir
+        self.key_handler['ALT+r'] = self.rename_dir
         self.key_handler['ALT+t'] = self.mark_toggle
+        self.key_handler['ALT+x'] = self.mark_clear
         self.key_handler['ALT+È'] = self.increase_depth
         self.key_handler['ALT+-'] = self.decrease_depth
         self.key_handler['other'] = self.other
+
+    def new_dir(self):
+        return NewDir(self, self.screen, x=len(self.get_path_part()) + 1, y=self.display_line)
+
+    def rename_dir(self):
+        return RenameDir(self.parent, self)
 
     def increase_depth(self):
         self.number_of_path_parts += 1
@@ -243,13 +257,17 @@ class FileManager(Screen):
         self.screen.move(self.display_line, 0)
         self.screen.clrtoeol()
 
+    def get_path_part(self):
+        # format the path part
+        path_part_without_root = self.path.parts[1:]
+        path_part = f"/{'/'.join(path_part_without_root[-self.number_of_path_parts:])}"
+        return path_part
+
     def payload(self):
         y = self.display_line
         x = 0
-        # format the path part
-        path_part_wihout_root = self.path.parts[1:]
-        path_part = f"/{'/'.join(path_part_wihout_root[-self.number_of_path_parts:])}"
 
+        path_part = self.get_path_part()
         # get the file part
         name, payload = self.current_dir_entry
 

@@ -9,11 +9,20 @@ class FileManagerLoop(MainLoop):
     """
     The main instance dispatching keystrokes
     """
+    utf8_set = False
 
     def signal_loop(self):
         self.page.render()
         while True:
             key = self.screen.getkey()
+            # handle german Umlauts
+            if key == 'Ã':
+                self.utf8_set = True
+                continue
+            if self.utf8_set:
+                key = bytes((ord('Ã'), ord(key))).decode()
+
+                self.utf8_set = False
             # handle meta key
             if key == '\x1b':
                 self.meta_set = True
