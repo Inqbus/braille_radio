@@ -6,7 +6,7 @@ from curses import KEY_ENTER
 from braille_radio.base import Screen
 from sortedcontainers.sorteddict import SortedDict
 
-from braille_radio.filemanager.newdir import NewDir
+from braille_radio.filemanager.edit import Edit, NewDir, Rename
 
 
 class RenameDir:
@@ -63,7 +63,7 @@ class FileManager(Screen):
         self.key_handler['ALT+e'] = self.mark_end
         self.key_handler['ALT+m'] = self.parent.move_confirm
         self.key_handler['ALT+n'] = self.new_dir
-        self.key_handler['ALT+r'] = self.rename_dir
+        self.key_handler['ALT+r'] = self.rename
         self.key_handler['ALT+t'] = self.mark_toggle
         self.key_handler['ALT+x'] = self.mark_clear
         self.key_handler['ALT+È'] = self.increase_depth
@@ -71,10 +71,23 @@ class FileManager(Screen):
         self.key_handler['other'] = self.other
 
     def new_dir(self):
-        return NewDir(self, self.screen, x=len(self.get_path_part()) + 1, y=self.display_line)
+        return NewDir(self, self.path, len(self.get_path_part()) + 1, self.display_line, screen=self.screen)
 
-    def rename_dir(self):
-        return RenameDir(self.parent, self)
+    def rename(self):
+        return Rename(self, self.current_dir_entry, len(self.get_path_part()) + 1, self.display_line, screen=self.screen)
+
+    def do_new_dir(self, entity):
+        os.mkdir(self.path / entity)
+        self.scan()
+        self.move_to_current_dir_entry(entity)
+        self.render()
+        return self
+
+    def do_rename(self, entity, name):
+        os.rename(self.path / entity[0], self.path / name)
+        self.scan()
+        self.render()
+        return self
 
     def increase_depth(self):
         self.number_of_path_parts += 1
@@ -235,7 +248,12 @@ class FileManager(Screen):
     @property
     def current_dir_entry_path(self):
         if self.current_dir_files:
-            return self.path /self.current_dir_files.items()[self.dir_index][0]
+            return self.path / self.current_dir_files.items()[self.dir_index][0]
+
+    def move_to_current_dir_entry(self, entry):
+        self.scan()
+        self.dir_index = self.current_dir_files.index(entry)
+        self.render()
 
     def scan(self):
 
