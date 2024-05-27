@@ -7,6 +7,7 @@ from braille_radio.base import Screen
 from sortedcontainers.sorteddict import SortedDict
 
 from braille_radio.filemanager.edit import Edit, NewDir, Rename
+from braille_radio.filemanager.help import FileManagerHelp
 
 
 class RenameDir:
@@ -53,7 +54,7 @@ class FileManager(Screen):
         self.key_handler['\n'] = self.dir_down
         self.key_handler['KEY_RIGHT'] = self.dir_down
         self.key_handler['KEY_LEFT'] = self.dir_up
-        self.key_handler['.'] = self.toggle_dot
+        self.key_handler['ALT+.'] = self.toggle_dot
         self.key_handler['/'] = self.toggle_search
         self.key_handler['KEY_BACKSPACE'] = self.backspace
         self.key_handler['ALT+a'] = self.mark_all
@@ -61,8 +62,10 @@ class FileManager(Screen):
         self.key_handler['ALT+c'] = self.parent.copy_confirm
         self.key_handler['ALT+d'] = self.parent.delete_confirm
         self.key_handler['ALT+e'] = self.mark_end
+        self.key_handler['ALT+h'] = self.help
         self.key_handler['ALT+m'] = self.parent.move_confirm
         self.key_handler['ALT+n'] = self.new_dir
+        self.key_handler['ALT+q'] = self.go_back
         self.key_handler['ALT+r'] = self.rename
         self.key_handler['ALT+t'] = self.mark_toggle
         self.key_handler['ALT+x'] = self.mark_clear
@@ -70,11 +73,20 @@ class FileManager(Screen):
         self.key_handler['ALT+-'] = self.decrease_depth
         self.key_handler['other'] = self.other
 
+    def go_back(self):
+        return self.parent.parent
+
+    def help(self):
+        help = FileManagerHelp(self, current_screen_line=3)
+        return help
+
     def new_dir(self):
         return NewDir(self, self.path, len(self.get_path_part()) + 1, self.display_line, screen=self.screen)
 
     def rename(self):
-        return Rename(self, self.current_dir_entry, len(self.get_path_part()) + 1, self.display_line, screen=self.screen)
+        rename = Rename(self, self.current_dir_entry, len(self.get_path_part()) + 1, self.display_line, screen=self.screen)
+        rename.prompt = 'Rename: '
+        return rename
 
     def do_new_dir(self, entity):
         os.mkdir(self.path / entity)
