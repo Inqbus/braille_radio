@@ -1,11 +1,11 @@
 import shutil
 
-from braille_radio.base import Screen
 from braille_radio.confirm import PopUp, Choice
+from braille_radio.filemanager.base import FileManagerScreen
 from braille_radio.filemanager.view import FileManager
 
 
-class FileManagerMain(Screen):
+class FileManagerMain(FileManagerScreen):
     """
     Filemanager Screen
     """
@@ -60,7 +60,7 @@ class FileManagerMain(Screen):
             return Choice(self.view, msg='Move: Are you sure?', yes=self.move)
 
     def delete_confirm(self):
-        return Choice(self.view, msg='Are you sure?', yes=self.delete)
+        return Choice(self.view, msg='Delete: Are you sure?', yes=self.delete)
 
     def copy(self):
         for item in self.view.marked:
@@ -92,3 +92,4 @@ class FileManagerMain(Screen):
 
         self.view.scan()
         self.view.render()
+

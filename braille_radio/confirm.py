@@ -62,7 +62,6 @@ class Choice(PopUp):
         else:
             return self.parent
 
-
     def payload(self):
         self.screen.addstr(POPUP_LINE, 0, self.msg + ' Press [n]/y')
         self.screen.move(POPUP_LINE, 0)

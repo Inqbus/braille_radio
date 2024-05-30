@@ -1,11 +1,11 @@
 import sys
 
-from braille_radio.base import Screen
+from braille_radio.filemanager.base import FileManagerScreen
 from braille_radio.filemanager.filemanager import FileManagerMain
 from braille_radio.filemanager.help import FileManagerHelp
 
 
-class FileManagerIntro(Screen):
+class FileManagerIntro(FileManagerScreen):
     """
     Filemanager Intro Screen
     """

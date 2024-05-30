@@ -1,9 +1,9 @@
 import _curses
 
-from braille_radio.base import Screen
+from braille_radio.filemanager.base import FileManagerScreen
 
 
-class FileManagerHelp(Screen):
+class FileManagerHelp(FileManagerScreen):
     """
     Help screen shows standard keystroke information
     """
@@ -15,11 +15,7 @@ class FileManagerHelp(Screen):
         else:
             self.current_screen_line = 0
 
-    def init_key_handler(self):
-        self.key_handler['ALT+q'] = self.go_back
 
-    def go_back(self):
-        return self.parent
 
     def payload(self):
         self.current_line = 3
