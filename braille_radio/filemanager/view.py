@@ -73,6 +73,7 @@ class FileManager(FileManagerScreen):
         self.key_handler['ALT+t'] = self.mark_toggle
         self.key_handler['ALT+x'] = self.mark_clear
         self.key_handler['ALT+È'] = self.increase_depth
+        self.key_handler['ALT++'] = self.increase_depth
         self.key_handler['ALT+-'] = self.decrease_depth
         self.key_handler['other'] = self.other
 
