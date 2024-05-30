@@ -57,7 +57,7 @@ class FileManager(FileManagerScreen):
         self.key_handler['KEY_RIGHT'] = self.dir_down
         self.key_handler['KEY_LEFT'] = self.dir_up
         self.key_handler['ALT+.'] = self.toggle_dot
-        self.key_handler['/'] = self.toggle_search
+        self.key_handler['ALT+/'] = self.toggle_search
         self.key_handler['KEY_BACKSPACE'] = self.backspace
         self.key_handler['ALT+a'] = self.mark_all
         self.key_handler['ALT+b'] = self.mark_begin
