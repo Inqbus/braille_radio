@@ -29,6 +29,7 @@ class FileManagerHelp(FileManagerScreen):
         self.append_line('ALT+a marks all entries in a directory; ALT+x unset all marks')
         self.append_line('ALT+b set start of marking; ALT+e set end of marking')
         self.append_line('Operations: ALT+c Copy, ALT+d Delete, ALT+m Move , ALT+n New, ALT+r Rename')
+        self.screen.move(0, 0)
 
     def clear_screen(self):
         """
