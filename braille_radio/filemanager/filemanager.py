@@ -65,7 +65,7 @@ class FileManagerMain(FileManagerScreen):
     def copy(self):
         for item in self.view.marked:
             if item.is_dir():
-                shutil.copytree(item, self.other_view.path)
+                shutil.copytree(item, self.other_view.path / item.name)
             else:
                 shutil.copy2(item, self.other_view.path)
         self.other_view.scan()
