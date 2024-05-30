@@ -265,6 +265,8 @@ class FileManager(FileManagerScreen):
     @property
     def current_dir_entry(self):
         if self.current_dir_files:
+            if len(self.current_dir_files.items()) <= self.dir_index:
+                self.dir_index = len(self.current_dir_files) - 1
             return self.current_dir_files.items()[self.dir_index]
         else:
             return (None, None)
