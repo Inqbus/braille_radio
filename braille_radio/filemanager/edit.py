@@ -4,7 +4,7 @@ import re
 from braille_radio.base import Screen
 
 
-VALID_CHARS = re.compile('[a-zA-Z0-9-_]')
+VALID_CHARS = re.compile("[a-zA-Z0-9-_' ]")
 
 
 class Edit(Screen):
