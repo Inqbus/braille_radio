@@ -1,13 +1,11 @@
-import os
 import re
 
-from braille_radio.base import Screen
-
+from braille_radio.filemanager.base import FileManagerScreen
 
 VALID_CHARS = re.compile("[a-zA-Z0-9-_' .äöüÄÜÖ]")
 
 
-class Edit(Screen):
+class Edit(FileManagerScreen):
     """
     Edit a file or directory name
     """
@@ -23,6 +21,7 @@ class Edit(Screen):
         self.cursor_pos = 0
 
     def init_key_handler(self):
+        super().init_key_handler()
         self.key_handler['\n'] = self.update
         self.key_handler['KEY_RIGHT'] = self.cursor_right
         self.key_handler['KEY_LEFT'] = self.cursor_left
