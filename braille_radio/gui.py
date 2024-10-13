@@ -9,7 +9,6 @@ import os
 from curses import wrapper
 
 from braille_radio.base import Screen
-from braille_radio.filemanager.view import FileManager
 from braille_radio.indexing import StationIndex
 from braille_radio.indexing import FavoriteIndex
 from braille_radio.loop import MainLoop
@@ -36,7 +35,6 @@ class Intro(Screen):
     def init_key_handler(self):
         self.key_handler.h = self.help
         self.key_handler.r = self.radio
-        self.key_handler.f = self.filemanager
 
     def help(self):
         return Help(self)
@@ -44,12 +42,9 @@ class Intro(Screen):
     def radio(self):
         return Radio(self)
 
-    def filemanager(self):
-        return FileManager(self)
-
     def payload(self):
         self.screen.addstr('Welcome to braille radio! Help is always found on the next line.')
-        self.screen.addstr(1, 0, 'Type h for help, r for radio, f for file manager')
+        self.screen.addstr(1, 0, 'Type h for help, r for radio')
 
 
 class Help(Screen):
