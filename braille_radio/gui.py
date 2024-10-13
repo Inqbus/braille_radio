@@ -1,5 +1,7 @@
+import curses
 import re
 from curses import KEY_ENTER, KEY_CTAB
+from curses.ascii import isprint
 
 import vlc
 import os
@@ -195,7 +197,8 @@ class StationSearch(Screen):
         self.key_handler['other'] = self.other
 
     def backspace(self):
-        if len(self.search_string) > 0:
+
+        if self.search_string and len(self.search_string) > 0:
             self.search_string = self.search_string[:-1]
             self.results = self.index.search(self.search_string)
             self.search_result_index = 0
@@ -213,6 +216,11 @@ class StationSearch(Screen):
             return favorite
 
     def other(self, key):
+        try:
+            if not isprint(key):
+                return
+        except TypeError:
+            return
         if self.search_string:
             self.search_string += key
         else:

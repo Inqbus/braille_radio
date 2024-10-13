@@ -25,11 +25,22 @@ class FileManagerLoop(MainLoop):
                 self.utf8_set = False
             # handle meta key
             if key == '\x1b':
-                self.meta_set = True
-                continue
-            elif self.meta_set:
-                self.meta_set = False
-                key = 'ALT+' + key
+                # Distinguish between ESC and ALT + key
+                # If ESC then the next char is "\1b"
+                self.screen.nodelay(True)
+                next_key = self.screen.getch()
+                self.screen.nodelay(False)
+                if next_key == '\x1b' or next_key == -1:
+                    # We have the ESC key pressed
+                    page = self.page.exit()
+                    if page is None:
+                        break
+                    else:
+                        self.page = page
+                        self.page.render()
+                else:
+                    # We have ALT + next_key pressed
+                    key = 'ALT+' + chr(next_key)
             if key == '\x04':
                 page = self.page.exit()
                 if page is None:
