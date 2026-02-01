@@ -11,11 +11,20 @@ from whoosh.qparser import MultifieldParser
 
 import progressbar
 
-SCHEMA = Schema(
-        name=NGRAM(stored=True),
-        tags=NGRAM(stored=True),
-        url_resolved=ID(stored=True)
+import logging
+
+# Logger konfigurieren
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('app.log'),
+        logging.StreamHandler()
+    ]
 )
+
+# Logger verwenden
+logger = logging.getLogger(__name__)
 
 
 class Index(object):

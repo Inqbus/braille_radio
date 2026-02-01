@@ -15,3 +15,5 @@ STATION_INDEX_DIR = join(base, "station_index")
 FAVORITES_INDEX_DIR = join(base, "favorite_index")
 
 DIR_FAVORITES = join(base, "dir_favorites")
+
+NUM_SCOLLER_LINES = 10

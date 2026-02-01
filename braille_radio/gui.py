@@ -1,4 +1,3 @@
-import curses
 import re
 from curses import KEY_ENTER, KEY_CTAB
 from curses.ascii import isprint
@@ -12,6 +11,7 @@ from braille_radio.base import Screen
 from braille_radio.indexing import StationIndex
 from braille_radio.indexing import FavoriteIndex
 from braille_radio.loop import MainLoop
+from braille_radio.station_rip import StationRip
 
 # Bring up an instance of radio browse index
 station_index = StationIndex()
@@ -190,6 +190,7 @@ class StationSearch(Screen):
         self.key_handler[KEY_CTAB] = self.tab
         self.key_handler['\t'] = self.tab
         self.key_handler['other'] = self.other
+        self.key_handler['r'] = self.rip
 
     def backspace(self):
 
@@ -201,6 +202,11 @@ class StationSearch(Screen):
 
     def enter(self):
         station = StationPlay(self)
+        station.tune_to(self.results[self.search_result_index])
+        return station
+
+    def rip(self):
+        station = StationRip(self)
         station.tune_to(self.results[self.search_result_index])
         return station
 
@@ -256,66 +262,6 @@ class FavoriteSearch(StationSearch):
         self.screen.move(0, 0)
 
 
-# class CategoryResults(StationSearch):
-#     """
-#     Shown category results
-#     """
-#
-#     def search(self, search_string):
-#         self.search_string = search_string
-#         self.search_results = rb.search_category(self.search_string)
-
-#
-# class Categories(Screen):
-#     """
-#     Navigate category results
-#     """
-#
-#     def init(self):
-#         self.categories = rb.categories()
-#         self.category_index = 0
-#
-#     def jump(self, key):
-#         for idx, category in enumerate(self.categories):
-#             if category['name'][0] == key:
-#                 break
-#         if idx < len(self.categories):
-#             self.category_index = idx
-#             self.render()
-#
-#     def payload(self):
-#         self.screen.addstr('Categories')
-#
-#         self.screen.addstr(1, 0, '%s Categories: %s %s (%s)' %
-#                                  (
-#                         len(self.categories),
-#                         self.category_index + 1,
-#                         self.categories[self.category_index]['name'],
-#                         self.categories[self.category_index]['stationcount'],
-#                                  )
-#                             )
-#         self.screen.move(1,0)
-#
-#     def notify(self, key):
-#         super(Categories, self).notify(key)
-#         if key == KEY_ENTER or key == '\n':
-#             result = CategoryResults(self)
-#             result.search(self.categories[self.category_index]['name'])
-#             return result
-#         else :
-#             if len(key)== 1 and CHAR_MAP.match(key):
-#                 self.jump(key)
-#
-#     def cursor_up(self):
-#         if self.category_index > 0:
-#             self.category_index -= 1
-#         self.render()
-#
-#     def cursor_down(self):
-#         if self.category_index < len(self.categories) - 1:
-#             self.category_index += 1
-#         self.render()
-
 
 class Update(Screen):
     """
@@ -345,6 +291,7 @@ class Updated(Screen):
         self.screen.addstr('Updating station index. Please wait. ')
         self.index.init()
         self.screen.addstr('Station index updated.')
+        self.screen.refresh()
         main.page = self.parent.parent
         main.page.render()
 
