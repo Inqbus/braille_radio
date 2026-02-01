@@ -1,41 +1,60 @@
-[tool.poetry]
+[project]
 name = "braille_radio"
 version = "0.1.3"
 description = "A minimal internet radio optimized for braille users"
-authors = ["volker <volker.jaenisch@inqbus.de>"]
-homepage = "https://github.com/Inqbus/braille_radio.git"
-repository = "https://github.com/Inqbus/braille_radio.git"
-license = "MIT"
+authors = [{ name = "volker", email = "volker.jaenisch@inqbus.de" }]
+requires-python = ">=3.8,<4.0"
 readme = "README.md"
-keywords = ["braille", "internet radio", "radio"]
+license = "MIT"
+keywords = [
+    "braille",
+    "internet radio",
+    "radio",
+]
 classifiers = [
     "Environment :: Console",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "python-vlc>=3.0.11115,<4",
+    "Whoosh-Reloaded>=2.7.5,<3",
+    "addict>=2.4.0,<3",
+    "progressbar>=2.5,<3",
+    "objsize>=0.3.3,<0.4",
+    "sortedcontainers>=2.4.0,<3",
+    "nicegui>=1.4.29,<2",
+    "pipewire_python>=0.2.3,<0.3",
+    "remote-pdb>=2.1.0,<3",
+    "pexpect>=4.9.0,<5",
+    "pyte>=0.8.2,<0.9",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.8,<4.0"
-python-vlc = "^3.0.11115"
-Whoosh-Reloaded = "^2.7.5"
-addict = "^2.4.0"
-progressbar = "^2.5"
-objsize = "^0.3.3"
-sortedcontainers = "^2.4.0"
-nicegui = "^1.4.29"
-pipewire_python = "^0.2.3"
-remote-pdb = "^2.1.0"
-pexpect = "^4.9.0"
-pyte = "^0.8.2"
+[project.urls]
+Homepage = "https://github.com/Inqbus/braille_radio.git"
+Repository = "https://github.com/Inqbus/braille_radio.git"
+
+[project.scripts]
+bradio = "braille_radio.gui:main"
+braille_radio = "braille_radio.gui:main"
+fman = "braille_radio.filemanager.main:main"
+
+[tool.uv]
+
+[tool.uv.build-backend]
+module-root = ""
 
 [poetry.group.dev.dependencies]
 pytest = "^5.2"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-bradio = "braille_radio.gui:main"
-braille_radio = "braille_radio.gui:main"
-fman = "braille_radio.filemanager.main:main"
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"
