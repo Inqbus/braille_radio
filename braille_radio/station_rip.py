@@ -111,13 +111,15 @@ class StationRip(Screen):
         self.screen.addstr(1, 0, 'Ripping URI: %s' % self.station['url_resolved'])
         self.screen.refresh()
 
-        scroller = Scroller(self.screen)
+        self.scroller = Scroller(self.screen)
 
-        t = threading.Thread(target=ripper_worker, args=(uri, scroller), daemon=True)
+        t = threading.Thread(target=ripper_worker, args=(uri, self.scroller), daemon=True)
         t.start()
 
     def exit(self):
         stop_event.set()
+        del self.scroller
+        self.screen.move(0, 0)
         return self.parent
 
     def notify(self, key):
