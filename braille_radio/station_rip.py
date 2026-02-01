@@ -52,7 +52,7 @@ class Scroller:
 stop_event = threading.Event()
 
 def ripper_worker(uri, scroller):
-    child = pexpect.spawn(f'streamripper -d {RIPPER_OUT_DIR} -o never {uri}')
+    child = pexpect.spawn(f'streamripper  {uri} -d {RIPPER_OUT_DIR} -o never')
     current_line = ''
     current_line_num = None
     try:
