@@ -46,6 +46,7 @@ Repository = "https://github.com/Inqbus/braille_radio.git"
 bradio = "braille_radio.gui:main"
 braille_radio = "braille_radio.gui:main"
 fman = "braille_radio.filemanager.main:main"
+ripper = "braille_radio.gui:main"
 
 [tool.uv]
 

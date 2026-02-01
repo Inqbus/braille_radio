@@ -4,7 +4,8 @@ import threading
 import pexpect
 
 from braille_radio.base import Screen
-from braille_radio.config import NUM_SCOLLER_LINES
+from braille_radio.config import NUM_SCOLLER_LINES, RIPPER_OUT_DIR
+
 
 class Scroller:
     def __init__(self, screen):
@@ -51,7 +52,7 @@ class Scroller:
 stop_event = threading.Event()
 
 def ripper_worker(uri, scroller):
-    child = pexpect.spawn(f'streamripper {uri}')
+    child = pexpect.spawn(f'streamripper -d {RIPPER_OUT_DIR} -o never {uri}')
     current_line = ''
     current_line_num = None
     try:

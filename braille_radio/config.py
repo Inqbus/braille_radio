@@ -17,3 +17,6 @@ FAVORITES_INDEX_DIR = join(base, "favorite_index")
 DIR_FAVORITES = join(base, "dir_favorites")
 
 NUM_SCOLLER_LINES = 10
+
+RIPPER_OUT_DIR = join(home, "/data/music/RIPPER/")
+
