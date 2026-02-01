@@ -1,4 +1,3 @@
-import queue
 import threading
 
 import pexpect
@@ -6,57 +5,67 @@ import pexpect
 from braille_radio.base import Screen
 from braille_radio.config import NUM_SCOLLER_LINES, RIPPER_OUT_DIR
 
+from braille_radio.log import logger
 
 class Scroller:
     def __init__(self, screen):
+        logger.debug('Creating scroller')
         self.screen = screen
         self.current_line = 0
         self.line_starty = 2
         self.clear()
 
     def clear(self):
+        logger.debug('scroller: clear')
         self.lines = [''] * NUM_SCOLLER_LINES
         self.draw_all_lines()
 
     def draw_line_at(self, line, y):
+        logger.debug(f'scroller: draw line at {y}')
         self.screen.move(y, 0)
         self.screen.clrtoeol()
         self.screen.addstr(y, 0, line)
 
     def draw_all_lines(self):
+        logger.debug('scroller: draw all lines')
         for y, line in enumerate(self.lines):
             self.draw_line_at(line, self.line_starty + y)
         self.screen.refresh()
 
     def append_line(self, line):
-        if line.strip() == '':
-            return self.current_line
+        logger.debug(f'scroller: append line: curr: {self.current_line}')
         # If we are at the end of scroller
-        if self.current_line == NUM_SCOLLER_LINES -1:
+        if self.current_line == NUM_SCOLLER_LINES - 1:
+            logger.debug('scroller: at end of scroller, moving lines up')
             # move all lines up and append line
             self.lines = self.lines[1:] + [line]
             self.draw_all_lines()
         else:
+            logger.debug('scroller: appending line')
+            self.current_line += 1
             self.lines[self.current_line] = line
             self.draw_line_at(line, self.line_starty + self.current_line)
             self.screen.refresh()
-            self.current_line += 1
-        return self.current_line
 
-    def refresh_line(self, line, line_num):
-        self.lines[line_num] = line
-        self.draw_line_at(line, self.line_starty + line_num)
+    def refresh_line(self, line):
+        logger.debug('scroller: Refresh line')
+        if line.strip() == '':
+            return
+        self.lines[self.current_line] = line
+        self.draw_line_at(line, self.line_starty + self.current_line)
         self.screen.refresh()
-        return line_num
 
-stop_event = threading.Event()
 
-def ripper_worker(uri, scroller):
+def ripper_worker(uri, screen, stop_event):
+    logger.debug('Spawning streamripper')
     child = pexpect.spawn(f'streamripper  {uri} -d {RIPPER_OUT_DIR} -o never')
-    current_line = ''
-    current_line_num = None
+    logger.debug('streamripper spawned.')
+
+    scroller = Scroller(screen)
+
     try:
         while not stop_event.is_set():
+            logger.debug('Pexcpecting loop')
 
             # Sucht nach dem nächsten \r ODER \n
             # Index 0 entspricht \r, Index 1 entspricht \n
@@ -69,27 +78,17 @@ def ripper_worker(uri, scroller):
             else:
                 new_content = raw_content
 
-            current_line += new_content
-
             if index == 0:
                 # FALL \r: Zeile "refreshen"
-                # Wir geben den Text aus und springen zum Anfang der Zeile (\r)
-                # 'end=""' verhindert, dass Python von sich aus ein \n anhängt
-                if current_line_num is None:
-                    current_line_num = scroller.append_line(current_line)
-                else:
-                    current_line_num = scroller.refresh_line(current_line, current_line_num)
-
-
-                # Wichtig: Für die Logik "Zeile löschen" leeren wir den String
-                current_line = ""
+                scroller.refresh_line(new_content)
 
             elif index == 1:
                 # FALL \n: Neue Zeile anfangen
-                current_line_num = scroller.append_line(current_line)
-                current_line = ""
+                scroller.append_line(new_content)
+
+        logger.debug('stop_event stopped loop')
+
         child.close(force=True)
-        scroller.clear()
     except pexpect.EOF:
         pass
 
@@ -104,26 +103,35 @@ class StationRip(Screen):
     def tune_to(self, station):
         self.station = station
 
-
     def payload(self):
         self.screen.addstr(0, 0, 'Ripping: %s' % self.station['name'])
         uri = self.station['url_resolved']
         self.screen.addstr(1, 0, 'Ripping URI: %s' % self.station['url_resolved'])
         self.screen.refresh()
 
-        self.scroller = Scroller(self.screen)
+        self.stop_event = threading.Event()
 
-        t = threading.Thread(target=ripper_worker, args=(uri, self.scroller), daemon=True)
-        t.start()
+        self.ripper_thread = threading.Thread(
+            target=ripper_worker,
+            args=(uri, self.screen, self.stop_event ),
+            daemon=True
+        )
+        self.ripper_thread.start()
 
     def exit(self):
-        stop_event.set()
-        del self.scroller
+        logger.debug('sending stop_event')
+        self.stop_event.set()
+        logger.debug('stop_event sent')
+
+        if self.ripper_thread and self.ripper_thread.is_alive():
+            logger.debug('joining thread')
+            self.ripper_thread.join(timeout=0.5)  # BLOCKIERT bis tot!
+            logger.debug('thread finished')
+
+        logger.debug('move(0,0)')
         self.screen.move(0, 0)
+        logger.debug('return to parent')
         return self.parent
 
     def notify(self, key):
         pass
-
-
-
