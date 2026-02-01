@@ -160,7 +160,7 @@ class StationSearch(Screen):
     def help(self):
         self.screen.addstr(1, 0, 'Up/Down moves in results')
         self.screen.addstr(2, 0, 'Hit enter to play selected station')
-        self.screen.addstr(3, 0, 'Hit F2 to ripp  selected station')
+        self.screen.addstr(3, 0, 'Hit F1 to ripp  selected station')
         self.screen.addstr(4, 0, 'Hit TAB to mark station as favorite')
         self.screen.move(0, 0)
 
@@ -262,7 +262,7 @@ class FavoriteSearch(StationSearch):
     def help(self):
         self.screen.addstr(1, 0, 'Up/Down moves in results')
         self.screen.addstr(2, 0, 'Hit enter to play selected station')
-        self.screen.addstr(3, 0, 'Hit F2 to ripp selected station')
+        self.screen.addstr(3, 0, 'Hit F1 to ripp selected station')
         self.screen.addstr(4, 0, 'Hit TAB to delete station from favorites')
         self.screen.move(0, 0)
 
