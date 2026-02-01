@@ -160,7 +160,8 @@ class StationSearch(Screen):
     def help(self):
         self.screen.addstr(1, 0, 'Up/Down moves in results')
         self.screen.addstr(2, 0, 'Hit enter to play selected station')
-        self.screen.addstr(3, 0, 'Hit TAB to mark station as favorite')
+        self.screen.addstr(3, 0, 'Hit F2 to ripp  selected station')
+        self.screen.addstr(4, 0, 'Hit TAB to mark station as favorite')
         self.screen.move(0, 0)
 
     def payload(self):
@@ -186,13 +187,13 @@ class StationSearch(Screen):
 
     def init_key_handler(self):
         super(StationSearch, self).init_key_handler()
+        self.key_handler['KEY_F(1)'] = self.rip
         self.key_handler['KEY_BACKSPACE'] = self.backspace
         self.key_handler[KEY_ENTER] = self.enter
         self.key_handler['\n'] = self.enter
         self.key_handler[KEY_CTAB] = self.tab
         self.key_handler['\t'] = self.tab
         self.key_handler['other'] = self.other
-        self.key_handler['r'] = self.rip
 
     def backspace(self):
 
@@ -261,7 +262,8 @@ class FavoriteSearch(StationSearch):
     def help(self):
         self.screen.addstr(1, 0, 'Up/Down moves in results')
         self.screen.addstr(2, 0, 'Hit enter to play selected station')
-        self.screen.addstr(3, 0, 'Hit TAB to delete station from favorites')
+        self.screen.addstr(3, 0, 'Hit F2 to ripp selected station')
+        self.screen.addstr(4, 0, 'Hit TAB to delete station from favorites')
         self.screen.move(0, 0)
 
 
