@@ -23,7 +23,7 @@ favorite_index = FavoriteIndex()
 os.environ["VLC_VERBOSE"] = str("-1")
 
 # Regex Filter for category keys
-CHAR_MAP = re.compile('\w{1}', flags=re.ASCII)
+CHAR_MAP = re.compile(r'\w{1}', flags=re.ASCII)
 
 ALL_STATIONS = list(station_index.ix.searcher().documents())
 
@@ -142,7 +142,8 @@ class StationSearch(Screen):
     """
     Search for a certain station.
     """
-    search_string = False
+    search_string = ''
+    has_search_string = False
     results = ALL_STATIONS
     search_result_index = 0
 
@@ -151,7 +152,8 @@ class StationSearch(Screen):
         super(StationSearch, self).__init__(parent, screen=screen)
 
     def init(self):
-        self.search_string = False
+        self.has_search_string = False
+        self.search_string = ''
         self.results = ALL_STATIONS
         self.search_result_index = 0
 
@@ -163,7 +165,7 @@ class StationSearch(Screen):
 
     def payload(self):
         if len(self.results) > 0:
-            if not self.search_string:
+            if not self.has_search_string:
                 _search_string = '<all>'
             else:
                 _search_string = self.search_string
@@ -194,7 +196,7 @@ class StationSearch(Screen):
 
     def backspace(self):
 
-        if self.search_string and len(self.search_string) > 0:
+        if self.has_search_string and (len(self.search_string) > 0):
             self.search_string = self.search_string[:-1]
             self.results = self.index.search(self.search_string)
             self.search_result_index = 0
@@ -222,9 +224,10 @@ class StationSearch(Screen):
                 return
         except TypeError:
             return
-        if self.search_string:
+        if self.has_search_string:
             self.search_string += key
         else:
+            self.has_search_string = True
             self.search_string = key
         self.results = self.index.search(self.search_string)
         self.search_result_index = 0
@@ -292,8 +295,8 @@ class Updated(Screen):
         self.index.init()
         self.screen.addstr('Station index updated.')
         self.screen.refresh()
-        main.page = self.parent.parent
-        main.page.render()
+        gui.page = self.parent.parent
+        gui.page.render()
 
 
 class Radio(Screen):
@@ -317,13 +320,16 @@ class Radio(Screen):
 
     def payload(self):
         self.screen.addstr('Radio')
-        self.screen.addstr(1, 0, 'Type s to search for stations')
+        self.screen.addstr(1, 0, 'Type s to search for stations.py')
         self.screen.addstr(2, 0, 'Type f for your favorites')
         self.screen.addstr(3, 0, 'Type u to update station index (needs some time!)')
         self.screen.move(0, 0)
 
 
+gui = None
+
 def main():
+    global gui
     gui = MainLoop(Intro)
     wrapper(gui)
 

@@ -6,7 +6,7 @@ from urllib.parse import quote
 BASE_SEARCH_URL = 'http://de1.api.radio-browser.info/json/stations/byname/{}'
 BASE_CATEGORY_SEARCH_URL = 'http://de1.api.radio-browser.info/json/stations/bytag/{}'
 BASE_ALL_CATEGORY_URL = 'http://de1.api.radio-browser.info/json/tags'
-ALL_STATIONS_URL = 'http://de1.api.radio-browser.info/json/stations'
+ALL_STATIONS_URL = 'http://all.api.radio-browser.info/json/stations'
 
 
 class RadioBrowse(object):
@@ -51,16 +51,17 @@ class RadioBrowse(object):
 
     def all_stations(self):
         """
-        Return all stations
-        :return: All stations
+        Return all stations.py
+        :return: All stations.py
         """
-        json_data = urlopen(ALL_STATIONS_URL).read().decode()
+        json_data = urlopen(ALL_STATIONS_URL+'?limit=500000').read().decode()
         result = json.loads(json_data)
         return result
 
 
 if __name__ == '__main__':
     rb = RadioBrowse()
-    res = rb.search('EKR')
-    print(res)
+    #res = rb.search('EKR')
+    all_stations = rb.all_stations()
+    print(len(all_stations))
 

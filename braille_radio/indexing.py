@@ -26,6 +26,11 @@ logging.basicConfig(
 # Logger verwenden
 logger = logging.getLogger(__name__)
 
+SCHEMA = Schema(
+        name=NGRAM(stored=True),
+        tags=NGRAM(stored=True),
+        url_resolved=ID(stored=True)
+)
 
 class Index(object):
     index_dir = None
@@ -76,11 +81,10 @@ class StationIndex(Index):
     index_dir = STATION_INDEX_DIR
 
     def init(self):
-        print('Indexing all available stations. This can take a minute or two. Loading stations')
+        logger.info('Indexing all available stations.py. This can take a minute or two. Loading stations.py')
         rb = RadioBrowse()
         all_stations = rb.all_stations()
-
-        # clear old index completely
+        logger.info(f'Num stations.py : {len(all_stations)}')
         self.ix.close()
         shutil.rmtree(self.index_dir)
         os.mkdir(self.index_dir)
